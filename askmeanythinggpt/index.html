@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AskMeAnythingGPT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .container:hover {
+            transform: translateY(-5px);
+        }
+
+        .title {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #fff, #f0f0f0);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .input-container {
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .question-input {
+            width: 100%;
+            padding: 20px;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+            resize: vertical;
+            min-height: 80px;
+            font-family: inherit;
+        }
+
+        .question-input::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .question-input:focus {
+            outline: none;
+            background: rgba(255, 255, 255, 0.25);
+            border-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+            transform: scale(1.02);
+        }
+
+        .ask-button {
+            width: 100%;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(45deg, #ff6b6b, #feca57);
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .ask-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(45deg, #ff5252, #ffc107);
+        }
+
+        .ask-button:active {
+            transform: translateY(0);
+        }
+
+        .response-container {
+            margin-top: 30px;
+            padding: 25px;
+            background: rgba(255, 255, 255, 0.15);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .response-container.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .response-text {
+            color: white;
+            font-size: 1.1rem;
+            line-height: 1.6;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .loading-dots {
+            display: inline-block;
+            font-size: 2rem;
+            color: white;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            50%,
+            100% {
+                opacity: 1;
+            }
+
+            25%,
+            75% {
+                opacity: 0.3;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                margin: 10px;
+            }
+
+            .title {
+                font-size: 2rem;
+            }
+
+            .question-input {
+                padding: 15px;
+                font-size: 1rem;
+            }
+
+            .ask-button {
+                padding: 15px;
+                font-size: 1.1rem;
+            }
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .particle {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            animation: float 6s infinite linear;
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(100vh) rotate(0deg);
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(-100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="floating-particles" id="particles"></div>
+
+    <div class="container">
+        <h1 class="title">AskMeAnythingGPT</h1>
+
+        <div class="input-container">
+            <textarea class="question-input" id="questionInput" placeholder="Ask me anything... I dare you 😈"
+                rows="3"></textarea>
+        </div>
+
+        <button class="ask-button" id="askButton">Ask Away</button>
+
+        <div class="loading" id="loading">
+            <div class="loading-dots">●●●</div>
+        </div>
+
+        <div class="response-container" id="responseContainer">
+            <div class="response-text" id="responseText"></div>
+        </div>
+    </div>
+
+    <script>
+        const responses = [
+            "I'm genuinely stunned at the level of ignorance you've managed to cultivate—it's almost an art form. How do you walk around with this level of oblivion and not trip over reality itself? You're not just clueless—you're aggressively unaware, like you sprinted past every opportunity to learn and set them on fire for good measure. This isn't even advanced stuff, it's Google-level basic. If you had even two neurons sparking in that hollow echo chamber you call a brain, you'd have looked it up by now. But no, here you are, proudly parading your lack of awareness like it's a personality trait.",
+
+            "It's honestly fascinating how you've survived this long while being this utterly devoid of basic comprehension. You're not uninformed—you're willfully ignorant, like you saw the concept of self-improvement and decided to spit on it. The answer is literally a 0.3-second search away, but instead you chose to broadcast your incompetence like a badge of honor. If common sense were a currency, you'd be in crippling debt. Google exists. Use it. Please. For everyone's sake.",
+
+            "I can't tell if you're trolling or if evolution just took a coffee break when it got to you. This isn't a hard question—it's not astrophysics, it's something a mildly alert squirrel could figure out with Wi-Fi. And yet here you are, proudly asking as if the answer hasn't existed online for the past two decades. Do you think the world owes you a personal tutorial on life's most basic facts? Google it, genius. It's not hidden in a cave—it's one click away. Try it before you subject the rest of us to your brain fog."
+        ];
+
+        const questionInput = document.getElementById('questionInput');
+        const askButton = document.getElementById('askButton');
+        const responseContainer = document.getElementById('responseContainer');
+        const responseText = document.getElementById('responseText');
+        const loading = document.getElementById('loading');
+
+        function getRandomResponse() {
+            const randomIndex = Math.floor(Math.random() * responses.length);
+            return responses[randomIndex];
+        }
+
+        function showResponse() {
+            const question = questionInput.value.trim();
+
+            if (!question) {
+                responseText.textContent = "Really? You can't even be bothered to type a question? This is peak laziness right here.";
+                responseContainer.classList.add('show');
+                return;
+            }
+
+            // Show loading
+            loading.style.display = 'block';
+            responseContainer.classList.remove('show');
+            askButton.disabled = true;
+            askButton.textContent = 'Thinking...';
+
+            // Simulate API delay
+            setTimeout(() => {
+                const randomResponse = getRandomResponse();
+                responseText.textContent = randomResponse;
+
+                loading.style.display = 'none';
+                responseContainer.classList.add('show');
+                askButton.disabled = false;
+                askButton.textContent = 'Ask Away';
+            }, 2000 + Math.random() * 1500); // Random delay between 2-3.5 seconds
+        }
+
+        askButton.addEventListener('click', showResponse);
+
+        questionInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                showResponse();
+            }
+        });
+
+        // Create floating particles
+        function createParticle() {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+
+            const size = Math.random() * 8 + 2;
+            particle.style.width = size + 'px';
+            particle.style.height = size + 'px';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.animationDuration = (Math.random() * 3 + 3) + 's';
+            particle.style.animationDelay = Math.random() * 2 + 's';
+
+            document.getElementById('particles').appendChild(particle);
+
+            setTimeout(() => {
+                particle.remove();
+            }, 8000);
+        }
+
+        // Create particles periodically
+        setInterval(createParticle, 300);
+
+        // Add some initial focus to the input
+        window.addEventListener('load', () => {
+            questionInput.focus();
+        });
+    </script>
+</body>
+
+</html>
